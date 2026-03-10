@@ -1,0 +1,992 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Salman Hadi — SRE & Platform Operations</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;600;700;800&family=Inter:wght@300;400;500&family=JetBrains+Mono:wght@300;400;500&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --navy: #050d1a;
+    --navy-mid: #091628;
+    --navy-card: #0d1f35;
+    --navy-glass: rgba(13,31,53,0.7);
+    --cyan: #00e5ff;
+    --cyan-dim: rgba(0,229,255,0.12);
+    --purple: #a855f7;
+    --pink: #f472b6;
+    --grad: linear-gradient(135deg, #00e5ff, #a855f7, #f472b6);
+    --grad-text: linear-gradient(90deg, #00e5ff 0%, #a855f7 50%, #f472b6 100%);
+    --border: rgba(0,229,255,0.15);
+    --text: #cdd9e8;
+    --text-dim: #647a94;
+  }
+
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  html { scroll-behavior: smooth; }
+
+  body {
+    font-family: 'Inter', sans-serif;
+    background: var(--navy);
+    color: var(--text);
+    overflow-x: hidden;
+  }
+
+  /* Noise overlay */
+  body::before {
+    content: '';
+    position: fixed; inset: 0; z-index: 0;
+    background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.04'/%3E%3C/svg%3E");
+    opacity: 0.4; pointer-events: none;
+  }
+
+  /* Grid bg */
+  .grid-bg {
+    position: fixed; inset: 0; z-index: 0;
+    background-image:
+      linear-gradient(rgba(0,229,255,0.03) 1px, transparent 1px),
+      linear-gradient(90deg, rgba(0,229,255,0.03) 1px, transparent 1px);
+    background-size: 60px 60px;
+    pointer-events: none;
+  }
+
+  /* Glow orbs */
+  .orb {
+    position: fixed; border-radius: 50%;
+    filter: blur(100px); pointer-events: none; z-index: 0;
+    animation: drift 20s ease-in-out infinite alternate;
+  }
+  .orb-1 { width: 500px; height: 500px; background: rgba(168,85,247,0.08); top: -100px; right: -100px; }
+  .orb-2 { width: 400px; height: 400px; background: rgba(0,229,255,0.06); bottom: 10%; left: -80px; animation-delay: -7s; }
+  .orb-3 { width: 300px; height: 300px; background: rgba(244,114,182,0.06); top: 40%; right: 10%; animation-delay: -12s; }
+
+  @keyframes drift {
+    from { transform: translate(0, 0) scale(1); }
+    to { transform: translate(30px, 40px) scale(1.1); }
+  }
+
+  /* Layout */
+  .page-wrap { position: relative; z-index: 1; }
+
+  /* ─── NAV ─── */
+  nav {
+    position: fixed; top: 0; left: 0; right: 0; z-index: 100;
+    display: flex; align-items: center; justify-content: space-between;
+    padding: 1.2rem 4rem;
+    background: rgba(5,13,26,0.7);
+    backdrop-filter: blur(20px);
+    border-bottom: 1px solid var(--border);
+    animation: slideDown 0.8s ease forwards;
+  }
+  @keyframes slideDown { from { transform: translateY(-100%); opacity: 0; } to { transform: translateY(0); opacity: 1; } }
+
+  .nav-logo {
+    font-family: 'Manrope', sans-serif; font-weight: 800; font-size: 1.1rem;
+    letter-spacing: 0.05em;
+    background: var(--grad-text); -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+  }
+  .nav-links { display: flex; gap: 2.5rem; list-style: none; }
+  .nav-links a {
+    font-family: 'JetBrains Mono', monospace; font-size: 0.75rem;
+    color: var(--text-dim); text-decoration: none; letter-spacing: 0.1em;
+    text-transform: uppercase; transition: color 0.3s;
+    position: relative;
+  }
+  .nav-links a::before {
+    content: attr(data-num); color: var(--cyan); margin-right: 0.4em; font-size: 0.65rem;
+  }
+  .nav-links a:hover { color: var(--cyan); }
+
+  /* ─── HERO ─── */
+  #hero {
+    min-height: 100vh;
+    display: grid; place-items: center;
+    padding: 8rem 4rem 4rem;
+    position: relative;
+  }
+
+  .hero-inner { max-width: 900px; width: 100%; }
+
+  .hero-tag {
+    font-family: 'JetBrains Mono', monospace; font-size: 0.75rem;
+    color: var(--cyan); letter-spacing: 0.2em; text-transform: uppercase;
+    margin-bottom: 1.5rem;
+    opacity: 0; animation: fadeUp 0.6s 0.4s ease forwards;
+  }
+  .hero-tag::before { content: '// '; opacity: 0.5; }
+
+  .hero-name {
+    font-family: 'Manrope', sans-serif; font-weight: 800;
+    font-size: clamp(3.5rem, 8vw, 7rem);
+    line-height: 0.95; letter-spacing: -0.02em;
+    margin-bottom: 1rem;
+    opacity: 0; animation: fadeUp 0.7s 0.55s ease forwards;
+  }
+  .hero-name .grad {
+    background: var(--grad-text); -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+    display: block;
+  }
+
+  .hero-title {
+    font-family: 'Manrope', sans-serif; font-weight: 600;
+    font-size: clamp(1.1rem, 2.5vw, 1.6rem);
+    color: var(--text-dim); letter-spacing: 0.02em;
+    margin-bottom: 2rem;
+    opacity: 0; animation: fadeUp 0.7s 0.7s ease forwards;
+  }
+
+  .hero-desc {
+    font-size: 1rem; line-height: 1.8; color: var(--text-dim);
+    max-width: 620px; margin-bottom: 3rem;
+    opacity: 0; animation: fadeUp 0.7s 0.85s ease forwards;
+  }
+
+  .hero-ctas {
+    display: flex; gap: 1.2rem; flex-wrap: wrap;
+    opacity: 0; animation: fadeUp 0.7s 1s ease forwards;
+  }
+
+  .btn-primary {
+    font-family: 'JetBrains Mono', monospace; font-size: 0.8rem;
+    letter-spacing: 0.1em; text-transform: uppercase; text-decoration: none;
+    padding: 0.9rem 2rem;
+    background: var(--grad); color: #000; font-weight: 500;
+    border-radius: 4px; transition: transform 0.2s, box-shadow 0.3s;
+    box-shadow: 0 0 30px rgba(0,229,255,0.2);
+  }
+  .btn-primary:hover { transform: translateY(-2px); box-shadow: 0 0 50px rgba(0,229,255,0.4); }
+
+  .btn-ghost {
+    font-family: 'JetBrains Mono', monospace; font-size: 0.8rem;
+    letter-spacing: 0.1em; text-transform: uppercase; text-decoration: none;
+    padding: 0.9rem 2rem; color: var(--cyan);
+    border: 1px solid var(--border); border-radius: 4px;
+    transition: border-color 0.3s, background 0.3s;
+  }
+  .btn-ghost:hover { border-color: var(--cyan); background: var(--cyan-dim); }
+
+  .hero-stats {
+    position: absolute; right: 4rem; bottom: 4rem;
+    display: flex; flex-direction: column; gap: 2rem;
+    opacity: 0; animation: fadeLeft 0.8s 1.2s ease forwards;
+  }
+  .stat { text-align: right; }
+  .stat-num {
+    font-family: 'Manrope', sans-serif; font-weight: 800; font-size: 2.5rem;
+    background: var(--grad-text); -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+    line-height: 1;
+  }
+  .stat-label {
+    font-family: 'JetBrains Mono', monospace; font-size: 0.65rem;
+    color: var(--text-dim); letter-spacing: 0.15em; text-transform: uppercase;
+  }
+
+  .scroll-hint {
+    position: absolute; bottom: 2rem; left: 50%; transform: translateX(-50%);
+    display: flex; flex-direction: column; align-items: center; gap: 0.5rem;
+    opacity: 0; animation: fadeUp 0.7s 1.5s ease forwards;
+  }
+  .scroll-hint span { font-family: 'JetBrains Mono', monospace; font-size: 0.65rem; color: var(--text-dim); letter-spacing: 0.15em; }
+  .scroll-line { width: 1px; height: 60px; background: linear-gradient(to bottom, var(--cyan), transparent); animation: scrollAnim 1.5s ease-in-out infinite; }
+  @keyframes scrollAnim { 0%,100%{transform:scaleY(1);opacity:1} 50%{transform:scaleY(0.5);opacity:0.5} }
+
+  @keyframes fadeUp { from{transform:translateY(30px);opacity:0} to{transform:translateY(0);opacity:1} }
+  @keyframes fadeLeft { from{transform:translateX(30px);opacity:0} to{transform:translateX(0);opacity:1} }
+
+  /* ─── SECTION COMMON ─── */
+  section { padding: 7rem 4rem; max-width: 1200px; margin: 0 auto; }
+
+  .section-label {
+    font-family: 'JetBrains Mono', monospace; font-size: 0.7rem;
+    color: var(--cyan); letter-spacing: 0.25em; text-transform: uppercase;
+    margin-bottom: 0.8rem;
+    display: flex; align-items: center; gap: 1rem;
+  }
+  .section-label::after { content: ''; flex: 0 0 60px; height: 1px; background: var(--cyan); opacity: 0.4; }
+
+  .section-title {
+    font-family: 'Manrope', sans-serif; font-weight: 700;
+    font-size: clamp(2rem, 4vw, 3rem); letter-spacing: -0.01em;
+    margin-bottom: 3.5rem; color: #e8f0fb;
+  }
+
+  /* ─── EXPERIENCE ─── */
+  .timeline { position: relative; }
+  .timeline::before {
+    content: ''; position: absolute; left: 0; top: 0; bottom: 0;
+    width: 1px; background: linear-gradient(to bottom, var(--cyan), var(--purple), transparent);
+  }
+
+  .tl-item {
+    padding-left: 3rem; margin-bottom: 4rem; position: relative;
+    opacity: 1; transform: translateY(0);
+    transition: opacity 0.6s ease, transform 0.6s ease;
+  }
+
+  .tl-dot {
+    position: absolute; left: -6px; top: 6px;
+    width: 13px; height: 13px; border-radius: 50%;
+    background: var(--navy); border: 2px solid var(--cyan);
+    box-shadow: 0 0 12px var(--cyan);
+  }
+
+  .tl-meta {
+    font-family: 'JetBrains Mono', monospace; font-size: 0.7rem;
+    color: var(--cyan); letter-spacing: 0.12em; margin-bottom: 0.5rem;
+  }
+
+  .tl-company {
+    font-family: 'Manrope', sans-serif; font-weight: 700; font-size: 1.4rem;
+    color: #e8f0fb; margin-bottom: 0.3rem;
+  }
+
+  .tl-role {
+    font-size: 0.9rem; color: var(--purple); margin-bottom: 1.2rem; font-weight: 500;
+  }
+
+  .tl-list { list-style: none; display: flex; flex-direction: column; gap: 0.6rem; }
+  .tl-list li {
+    font-size: 0.9rem; color: var(--text-dim); padding-left: 1.2rem; position: relative; line-height: 1.6;
+  }
+  .tl-list li::before { content: '▹'; position: absolute; left: 0; color: var(--cyan); }
+
+  /* ─── PROJECTS ─── */
+  .projects-github {
+    font-family: 'JetBrains Mono', monospace; font-size: 0.78rem;
+    color: var(--text-dim); margin-bottom: 2.5rem;
+    display: flex; align-items: center; gap: 0.6rem;
+  }
+  .projects-github a { color: var(--cyan); text-decoration: none; transition: opacity 0.2s; }
+  .projects-github a:hover { opacity: 0.7; }
+  .projects-github::before { content: '⎇'; font-size: 1rem; color: var(--cyan); }
+
+  .projects-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+    gap: 1.4rem;
+  }
+
+  .proj-card {
+    background: var(--navy-glass);
+    border: 1px solid var(--border);
+    border-radius: 12px; padding: 1.6rem;
+    backdrop-filter: blur(12px);
+    display: flex; flex-direction: column; gap: 0.9rem;
+    transition: transform 0.3s, border-color 0.3s, box-shadow 0.3s;
+    position: relative; overflow: hidden;
+  }
+  .proj-card::after {
+    content: ''; position: absolute; bottom: 0; left: 0; right: 0; height: 2px;
+    background: var(--grad); transform: scaleX(0); transform-origin: left;
+    transition: transform 0.3s ease;
+  }
+  .proj-card:hover { transform: translateY(-4px); border-color: rgba(0,229,255,0.3); box-shadow: 0 8px 40px rgba(0,229,255,0.07); }
+  .proj-card:hover::after { transform: scaleX(1); }
+
+  .proj-header { display: flex; align-items: flex-start; justify-content: space-between; gap: 1rem; }
+  .proj-icon { font-size: 1.3rem; flex-shrink: 0; margin-top: 2px; }
+  .proj-arrow {
+    font-size: 0.9rem; color: var(--text-dim);
+    transition: color 0.2s, transform 0.2s; flex-shrink: 0;
+  }
+  .proj-card:hover .proj-arrow { color: var(--cyan); transform: translate(2px, -2px); }
+
+  .proj-name {
+    font-family: 'Manrope', sans-serif; font-weight: 700; font-size: 0.95rem;
+    color: #e8f0fb; line-height: 1.35; flex: 1;
+  }
+  .proj-desc { font-size: 0.83rem; color: var(--text-dim); line-height: 1.65; }
+  .proj-tags { display: flex; flex-wrap: wrap; gap: 0.4rem; margin-top: auto; padding-top: 0.4rem; }
+
+  /* ─── SKILLS ─── */
+  .skills-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 1.5rem; }
+
+  .skill-card {
+    background: var(--navy-glass);
+    border: 1px solid var(--border);
+    border-radius: 12px; padding: 1.8rem;
+    backdrop-filter: blur(12px);
+    transition: transform 0.3s, border-color 0.3s, box-shadow 0.3s;
+  }
+  .skill-card:hover { border-color: rgba(0,229,255,0.35); box-shadow: 0 0 30px rgba(0,229,255,0.08); transform: translateY(-3px); }
+
+  .skill-icon { font-size: 1.6rem; margin-bottom: 1rem; }
+  .skill-cat {
+    font-family: 'JetBrains Mono', monospace; font-size: 0.65rem;
+    color: var(--cyan); letter-spacing: 0.18em; text-transform: uppercase; margin-bottom: 0.6rem;
+  }
+  .skill-name {
+    font-family: 'Manrope', sans-serif; font-weight: 600; font-size: 1rem;
+    color: #e8f0fb; margin-bottom: 1rem;
+  }
+  .skill-tags { display: flex; flex-wrap: wrap; gap: 0.4rem; }
+  .tag {
+    font-family: 'JetBrains Mono', monospace; font-size: 0.65rem;
+    padding: 0.3rem 0.7rem; border-radius: 4px;
+    border: 1px solid var(--border); color: var(--text-dim); letter-spacing: 0.05em;
+    transition: border-color 0.2s, color 0.2s;
+  }
+  .tag:hover { border-color: var(--cyan); color: var(--cyan); }
+
+  /* ─── CERTS ─── */
+  .certs-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(220px, 1fr)); gap: 1.2rem; }
+
+  .cert-card {
+    background: var(--navy-glass); border: 1px solid var(--border);
+    border-radius: 10px; padding: 1.5rem;
+    backdrop-filter: blur(12px);
+    display: flex; gap: 1rem; align-items: flex-start;
+    transition: transform 0.3s, border-color 0.3s;
+  }
+  .cert-card:hover { transform: translateY(-4px); border-color: rgba(168,85,247,0.4); }
+
+  .cert-badge {
+    width: 36px; height: 36px; border-radius: 8px;
+    display: grid; place-items: center; font-size: 1rem; flex-shrink: 0;
+  }
+  .cert-badge.aws { background: rgba(255,153,0,0.15); color: #ff9900; border: 1px solid rgba(255,153,0,0.3); }
+  .cert-badge.google { background: rgba(0,229,255,0.1); color: var(--cyan); border: 1px solid var(--border); }
+
+  .cert-name {
+    font-family: 'Manrope', sans-serif; font-size: 0.85rem; font-weight: 600;
+    color: #e8f0fb; line-height: 1.4;
+  }
+
+  /* ─── EDUCATION ─── */
+  .edu-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 1.5rem; }
+
+  .edu-card {
+    background: var(--navy-glass); border: 1px solid var(--border);
+    border-radius: 12px; padding: 2rem; backdrop-filter: blur(12px);
+    position: relative; overflow: hidden;
+    transition: border-color 0.3s;
+  }
+  .edu-card:hover { border-color: rgba(168,85,247,0.4); }
+  .edu-card::before {
+    content: ''; position: absolute; top: 0; left: 0; right: 0; height: 2px;
+    background: var(--grad);
+  }
+  .edu-year {
+    font-family: 'JetBrains Mono', monospace; font-size: 0.7rem;
+    color: var(--purple); letter-spacing: 0.12em; margin-bottom: 0.8rem;
+  }
+  .edu-degree {
+    font-family: 'Manrope', sans-serif; font-weight: 700; font-size: 1.1rem;
+    color: #e8f0fb; margin-bottom: 0.4rem;
+  }
+  .edu-school { font-size: 0.85rem; color: var(--text-dim); }
+
+  /* ─── CONTACT / FOOTER ─── */
+  #contact {
+    padding: 6rem 4rem;
+    max-width: 1200px; margin: 0 auto;
+    text-align: center;
+  }
+
+  .contact-inner {
+    background: var(--navy-glass); border: 1px solid var(--border);
+    border-radius: 20px; padding: 4rem; backdrop-filter: blur(16px);
+    position: relative; overflow: hidden;
+  }
+  .contact-inner::before {
+    content: ''; position: absolute; inset: 0;
+    background: radial-gradient(ellipse at 50% 0%, rgba(0,229,255,0.06) 0%, transparent 70%);
+  }
+
+  .contact-sub {
+    font-family: 'JetBrains Mono', monospace; font-size: 0.75rem;
+    color: var(--cyan); letter-spacing: 0.2em; text-transform: uppercase; margin-bottom: 1rem;
+  }
+  .contact-title {
+    font-family: 'Manrope', sans-serif; font-weight: 800;
+    font-size: clamp(1.8rem, 4vw, 3rem);
+    color: #e8f0fb; margin-bottom: 1.2rem;
+  }
+  .contact-desc { color: var(--text-dim); max-width: 500px; margin: 0 auto 2.5rem; line-height: 1.8; }
+
+  .contact-links { display: flex; justify-content: center; gap: 1.2rem; flex-wrap: wrap; }
+  .contact-link {
+    font-family: 'JetBrains Mono', monospace; font-size: 0.75rem;
+    letter-spacing: 0.1em; text-transform: uppercase; text-decoration: none;
+    padding: 0.85rem 1.8rem; border: 1px solid var(--border); border-radius: 6px;
+    color: var(--text); display: flex; align-items: center; gap: 0.6rem;
+    transition: border-color 0.3s, color 0.3s, background 0.3s;
+  }
+  .contact-link:hover { border-color: var(--cyan); color: var(--cyan); background: var(--cyan-dim); }
+
+  footer {
+    text-align: center; padding: 2rem 4rem;
+    font-family: 'JetBrains Mono', monospace; font-size: 0.65rem;
+    color: var(--text-dim); letter-spacing: 0.1em; border-top: 1px solid var(--border);
+  }
+
+  /* ─── PROJECTS ─── */
+  .proj-github {
+    margin-bottom: 2.5rem;
+  }
+  .github-link {
+    display: inline-flex; align-items: center; gap: 0.6rem;
+    font-family: 'JetBrains Mono', monospace; font-size: 0.8rem;
+    color: var(--cyan); text-decoration: none; letter-spacing: 0.08em;
+    border: 1px solid var(--border); padding: 0.6rem 1.2rem; border-radius: 6px;
+    transition: border-color 0.3s, background 0.3s;
+  }
+  .github-link:hover { border-color: var(--cyan); background: var(--cyan-dim); }
+
+  .proj-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+    gap: 1.4rem;
+  }
+
+  .proj-card {
+    background: var(--navy-glass);
+    border: 1px solid var(--border);
+    border-radius: 12px; padding: 1.6rem;
+    backdrop-filter: blur(12px);
+    display: flex; flex-direction: column; gap: 0.9rem;
+    transition: transform 0.3s, border-color 0.3s, box-shadow 0.3s;
+    position: relative; overflow: hidden;
+  }
+  .proj-card::after {
+    content: ''; position: absolute; top: 0; left: 0; right: 0; height: 2px;
+    background: linear-gradient(90deg, transparent, var(--cyan), transparent);
+    opacity: 0; transition: opacity 0.3s;
+  }
+  .proj-card:hover { transform: translateY(-4px); border-color: rgba(0,229,255,0.3); box-shadow: 0 8px 30px rgba(0,0,0,0.3); }
+  .proj-card:hover::after { opacity: 1; }
+
+  .proj-card--highlight { border-color: rgba(168,85,247,0.25); }
+  .proj-card--highlight::after { background: linear-gradient(90deg, transparent, var(--purple), transparent); }
+  .proj-card--highlight:hover { border-color: rgba(168,85,247,0.5); box-shadow: 0 8px 30px rgba(168,85,247,0.1); }
+
+  .proj-header { display: flex; align-items: center; gap: 0.8rem; }
+  .proj-icon { font-size: 1.3rem; flex-shrink: 0; }
+  .proj-title {
+    font-family: 'Manrope', sans-serif; font-weight: 700; font-size: 0.95rem;
+    color: #e8f0fb; line-height: 1.3;
+  }
+  .proj-desc {
+    font-size: 0.85rem; color: var(--text-dim); line-height: 1.65; flex: 1;
+  }
+
+  /* Scroll reveal base (non-JS fallback) */
+  @media (prefers-reduced-motion: reduce) {
+    .tl-item, .skill-card, .cert-card, .edu-card { opacity: 1; transform: none; }
+  }
+
+  /* Responsive */
+  @media (max-width: 768px) {
+    nav { padding: 1rem 1.5rem; }
+    .nav-links { display: none; }
+    section, #contact, #hero { padding-left: 1.5rem; padding-right: 1.5rem; }
+    .hero-stats { position: static; flex-direction: row; margin-top: 3rem; }
+    .stat { text-align: left; }
+    .edu-grid { grid-template-columns: 1fr; }
+    .scroll-hint { display: none; }
+  }
+</style>
+</head>
+<body>
+
+<div class="grid-bg"></div>
+<div class="orb orb-1"></div>
+<div class="orb orb-2"></div>
+<div class="orb orb-3"></div>
+
+<div class="page-wrap">
+
+  <!-- NAV -->
+  <nav>
+    <div class="nav-logo">SH//</div>
+    <ul class="nav-links">
+      <li><a href="#experience" data-num="01">Experience</a></li>
+      <li><a href="#projects" data-num="02">Projects</a></li>
+      <li><a href="#skills" data-num="03">Skills</a></li>
+      <li><a href="#education" data-num="04">Education</a></li>
+      <li><a href="#contact" data-num="05">Contact</a></li>
+    </ul>
+  </nav>
+
+  <!-- HERO -->
+  <div id="hero">
+    <div class="hero-inner">
+      <p class="hero-tag">available for opportunities · Dublin, Ireland</p>
+      <h1 class="hero-name">
+        Salman<br><span class="grad">Hadi</span>
+      </h1>
+      <p class="hero-title">Site Reliability Engineer &nbsp;·&nbsp; Incident Response Manager</p>
+      <p class="hero-desc">
+        Platform Operations professional with 7+ years keeping high-availability fintech and enterprise systems reliable, observable, and resilient. Specialist in monitoring strategy, incident management, and operational automation.
+      </p>
+      <div class="hero-ctas">
+        <a href="#experience" class="btn-primary">View Experience</a>
+        <a href="#contact" class="btn-ghost">Get in Touch</a>
+      </div>
+    </div>
+    <div class="hero-stats">
+      <div class="stat"><div class="stat-num">7+</div><div class="stat-label">Years Experience</div></div>
+      <div class="stat"><div class="stat-num">3</div><div class="stat-label">Cloud Platforms</div></div>
+      <div class="stat"><div class="stat-num">6</div><div class="stat-label">Observability Tools</div></div>
+    </div>
+    <div class="scroll-hint">
+      <span>scroll</span>
+      <div class="scroll-line"></div>
+    </div>
+  </div>
+
+  <!-- EXPERIENCE -->
+  <section id="experience">
+    <p class="section-label">work history</p>
+    <h2 class="section-title">Experience</h2>
+    <div class="timeline">
+
+      <div class="tl-item">
+        <div class="tl-dot"></div>
+        <div class="tl-meta">Feb 2022 — Present &nbsp;·&nbsp; Dublin, Ireland</div>
+        <div class="tl-company">FreedomPay</div>
+        <div class="tl-role">Senior Platform Operations Engineer (Site Reliability)</div>
+        <ul class="tl-list">
+          <li>Lead production operations and reliability improvements for a global cloud-based payment platform in high-availability environments.</li>
+          <li>Design and implement monitoring strategies using Dynatrace, Splunk, and New Relic — reducing alert noise and improving incident detection across production services.</li>
+          <li>Build end-to-end observability across infrastructure and services for proactive monitoring and performance optimisation.</li>
+          <li>Lead major incident response and root cause analysis (RCA), coordinating cross-team investigations and defining long-term corrective actions.</li>
+          <li>Developed Python automation utilities to streamline incident management, including automated timeline capture and P1 incident template generation.</li>
+          <li>Develop production support readiness frameworks, improving release processes and operational stability across engineering teams.</li>
+          <li>Perform SQL-based investigations to validate data flows and troubleshoot service anomalies.</li>
+          <li>Facilitate weekly Change Advisory Board (CAB) reviews for maintenance window activities.</li>
+        </ul>
+      </div>
+
+      <div class="tl-item">
+        <div class="tl-dot" style="border-color: var(--purple); box-shadow: 0 0 12px var(--purple);"></div>
+        <div class="tl-meta" style="color: var(--purple)">Jan 2019 — Feb 2022 &nbsp;·&nbsp; Dublin, Ireland</div>
+        <div class="tl-company">Version 1</div>
+        <div class="tl-role">Technology Consultant</div>
+        <ul class="tl-list">
+          <li>Acted as SME and lead analyst for Revenue.ie customs applications, supporting large-scale transactional systems in national customs operations.</li>
+          <li>Worked closely with business stakeholders and delivery teams to analyse requirements, support implementations, and troubleshoot production issues.</li>
+          <li>Investigated data integrity and transactional issues using SQL across Java and COBOL systems in high-volume environments.</li>
+          <li>Designed Bash automation scripts to streamline operational tasks, reducing manual workload by 30+ hours per month.</li>
+          <li>Supported AWS cloud transformation projects and virtualisation environments (VMware, Hyper-V).</li>
+          <li>Delivered internal training and knowledge-sharing sessions to improve team capability and system understanding.</li>
+        </ul>
+      </div>
+
+    </div>
+  </section>
+
+  <!-- PROJECTS -->
+  <section id="projects">
+    <p class="section-label">things i've built</p>
+    <h2 class="section-title">Projects</h2>
+    <div class="proj-github">
+      <a href="https://github.com/gokuhadi" target="_blank" class="github-link">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><path d="M12 0C5.37 0 0 5.37 0 12c0 5.31 3.435 9.795 8.205 11.385.6.105.825-.255.825-.57 0-.285-.015-1.23-.015-2.235-3.015.555-3.795-.735-4.035-1.41-.135-.345-.72-1.41-1.23-1.695-.42-.225-1.02-.78-.015-.795.945-.015 1.62.87 1.845 1.23 1.08 1.815 2.805 1.305 3.495.99.105-.78.42-1.305.765-1.605-2.67-.3-5.46-1.335-5.46-5.925 0-1.305.465-2.385 1.23-3.225-.12-.3-.54-1.53.12-3.18 0 0 1.005-.315 3.3 1.23.96-.27 1.98-.405 3-.405s2.04.135 3 .405c2.295-1.56 3.3-1.23 3.3-1.23.66 1.65.24 2.88.12 3.18.765.84 1.23 1.905 1.23 3.225 0 4.605-2.805 5.625-5.475 5.925.435.375.81 1.095.81 2.22 0 1.605-.015 2.895-.015 3.3 0 .315.225.69.825.57A12.02 12.02 0 0 0 24 12c0-6.63-5.37-12-12-12z"/></svg>
+        github.com/gokuhadi
+      </a>
+    </div>
+    <div class="proj-grid">
+
+      <div class="proj-card">
+        <div class="proj-header">
+          <div class="proj-icon">☁️</div>
+          <div class="proj-title">AWS Server Deployment</div>
+        </div>
+        <p class="proj-desc">Provisioned and configured production-grade EC2 instances with networking, security groups, and monitoring.</p>
+        <div class="skill-tags"><span class="tag">AWS</span><span class="tag">EC2</span><span class="tag">Infrastructure</span></div>
+      </div>
+
+      <div class="proj-card">
+        <div class="proj-header">
+          <div class="proj-icon">🖥️</div>
+          <div class="proj-title">Windows Server Deployment via VMware</div>
+        </div>
+        <p class="proj-desc">Deployed and configured Windows Server environments using VMware Workstation for development and testing.</p>
+        <div class="skill-tags"><span class="tag">VMware</span><span class="tag">Windows Server</span><span class="tag">Virtualization</span></div>
+      </div>
+
+      <div class="proj-card">
+        <div class="proj-header">
+          <div class="proj-icon">🐧</div>
+          <div class="proj-title">Linux Server Deployment</div>
+        </div>
+        <p class="proj-desc">Built and hardened Linux servers for various workloads including web hosting and application services.</p>
+        <div class="skill-tags"><span class="tag">Linux</span><span class="tag">Bash</span><span class="tag">Infra</span></div>
+      </div>
+
+      <div class="proj-card">
+        <div class="proj-header">
+          <div class="proj-icon">⚖️</div>
+          <div class="proj-title">Risk Analysis System — Revenue.ie</div>
+        </div>
+        <p class="proj-desc">Maintained and supported a critical risk analysis system for Ireland's Revenue Commissioners customs operations.</p>
+        <div class="skill-tags"><span class="tag">Public Sector</span><span class="tag">Java</span><span class="tag">COBOL</span></div>
+      </div>
+
+      <div class="proj-card">
+        <div class="proj-header">
+          <div class="proj-icon">🚌</div>
+          <div class="proj-title">Transit System Enhancement — Revenue.ie</div>
+        </div>
+        <p class="proj-desc">Enhanced application components for the transit system at Revenue.ie, improving reliability and performance.</p>
+        <div class="skill-tags"><span class="tag">Public Sector</span><span class="tag">Java</span><span class="tag">Enhancement</span></div>
+      </div>
+
+      <div class="proj-card">
+        <div class="proj-header">
+          <div class="proj-icon">🔒</div>
+          <div class="proj-title">IIS Certificate Implementation — ESB</div>
+        </div>
+        <p class="proj-desc">Implemented SSL/TLS certificates for sites on IIS application pools for ESB, ensuring secure communications.</p>
+        <div class="skill-tags"><span class="tag">IIS</span><span class="tag">Security</span><span class="tag">Certificates</span></div>
+      </div>
+
+      <div class="proj-card proj-card--highlight">
+        <div class="proj-header">
+          <div class="proj-icon">📊</div>
+          <div class="proj-title">Fintech Monitoring Dashboards & Alerts</div>
+        </div>
+        <p class="proj-desc">Created comprehensive dashboards, alerting rules, and response procedures across multiple fintech payment services.</p>
+        <div class="skill-tags"><span class="tag">Dynatrace</span><span class="tag">Splunk</span><span class="tag">New Relic</span></div>
+      </div>
+
+      <div class="proj-card proj-card--highlight">
+        <div class="proj-header">
+          <div class="proj-icon">📋</div>
+          <div class="proj-title">Production Support Readiness Reports</div>
+        </div>
+        <p class="proj-desc">Built detailed readiness reports assessing monitoring coverage, runbook completeness, and on-call preparedness for fintech services.</p>
+        <div class="skill-tags"><span class="tag">Documentation</span><span class="tag">Fintech</span><span class="tag">Operations</span></div>
+      </div>
+
+      <div class="proj-card proj-card--highlight">
+        <div class="proj-header">
+          <div class="proj-icon">🤖</div>
+          <div class="proj-title">Automated Incident Timeline Scribe</div>
+        </div>
+        <p class="proj-desc">Built a Python tool that automatically generates incident timelines, reducing manual documentation effort during major incidents.</p>
+        <div class="skill-tags"><span class="tag">Python</span><span class="tag">Automation</span><span class="tag">Incident Mgmt</span></div>
+      </div>
+
+      <div class="proj-card">
+        <div class="proj-header">
+          <div class="proj-icon">📝</div>
+          <div class="proj-title">Operational Process Documentation</div>
+        </div>
+        <p class="proj-desc">Created standardized operational processes and documentation that improved team efficiency and reduced MTTR across the board.</p>
+        <div class="skill-tags"><span class="tag">Documentation</span><span class="tag">SRE</span><span class="tag">Operations</span></div>
+      </div>
+
+    </div>
+  </section>
+
+  <!-- PROJECTS -->
+  <section id="projects">
+    <p class="section-label">things i've built</p>
+    <h2 class="section-title">Projects</h2>
+    <div class="projects-github">
+      <a href="https://github.com/gokuhadi" target="_blank">github.com/gokuhadi</a>
+    </div>
+    <div class="projects-grid">
+
+      <div class="proj-card">
+        <div class="proj-header">
+          <span class="proj-icon">☁️</span>
+          <span class="proj-name">AWS Server Deployment</span>
+          <span class="proj-arrow">↗</span>
+        </div>
+        <p class="proj-desc">Provisioned and configured production-grade EC2 instances with networking, security groups, and monitoring.</p>
+        <div class="proj-tags">
+          <span class="tag">AWS</span><span class="tag">EC2</span><span class="tag">Infrastructure</span>
+        </div>
+      </div>
+
+      <div class="proj-card">
+        <div class="proj-header">
+          <span class="proj-icon">🪟</span>
+          <span class="proj-name">Windows Server Deployment via VMware</span>
+          <span class="proj-arrow">↗</span>
+        </div>
+        <p class="proj-desc">Deployed and configured Windows Server environments using VMware Workstation for development and testing.</p>
+        <div class="proj-tags">
+          <span class="tag">VMware</span><span class="tag">Windows Server</span><span class="tag">Virtualization</span>
+        </div>
+      </div>
+
+      <div class="proj-card">
+        <div class="proj-header">
+          <span class="proj-icon">🐧</span>
+          <span class="proj-name">Linux Server Deployment</span>
+          <span class="proj-arrow">↗</span>
+        </div>
+        <p class="proj-desc">Built and hardened Linux servers for various workloads including web hosting and application services.</p>
+        <div class="proj-tags">
+          <span class="tag">Linux</span><span class="tag">Bash</span><span class="tag">Infra</span>
+        </div>
+      </div>
+
+      <div class="proj-card">
+        <div class="proj-header">
+          <span class="proj-icon">🏛️</span>
+          <span class="proj-name">Risk Analysis System — Revenue.ie</span>
+          <span class="proj-arrow">↗</span>
+        </div>
+        <p class="proj-desc">Maintained and supported a critical risk analysis system for Ireland's Revenue Commissioners customs operations.</p>
+        <div class="proj-tags">
+          <span class="tag">Public Sector</span><span class="tag">Java</span><span class="tag">COBOL</span>
+        </div>
+      </div>
+
+      <div class="proj-card">
+        <div class="proj-header">
+          <span class="proj-icon">🚌</span>
+          <span class="proj-name">Transit System Enhancement — Revenue.ie</span>
+          <span class="proj-arrow">↗</span>
+        </div>
+        <p class="proj-desc">Enhanced application components for the transit system at Revenue.ie, improving reliability and performance.</p>
+        <div class="proj-tags">
+          <span class="tag">Public Sector</span><span class="tag">Java</span><span class="tag">Enhancement</span>
+        </div>
+      </div>
+
+      <div class="proj-card">
+        <div class="proj-header">
+          <span class="proj-icon">🔐</span>
+          <span class="proj-name">IIS Certificate Implementation — ESB</span>
+          <span class="proj-arrow">↗</span>
+        </div>
+        <p class="proj-desc">Implemented SSL/TLS certificates for sites on IIS application pools for ESB, ensuring secure communications.</p>
+        <div class="proj-tags">
+          <span class="tag">IIS</span><span class="tag">Security</span><span class="tag">Certificates</span>
+        </div>
+      </div>
+
+      <div class="proj-card">
+        <div class="proj-header">
+          <span class="proj-icon">📊</span>
+          <span class="proj-name">Fintech Monitoring Dashboards & Alerts</span>
+          <span class="proj-arrow">↗</span>
+        </div>
+        <p class="proj-desc">Created comprehensive dashboards, alerting rules, and response procedures across multiple fintech payment services.</p>
+        <div class="proj-tags">
+          <span class="tag">Dynatrace</span><span class="tag">Splunk</span><span class="tag">New Relic</span>
+        </div>
+      </div>
+
+      <div class="proj-card">
+        <div class="proj-header">
+          <span class="proj-icon">📋</span>
+          <span class="proj-name">Production Support Readiness Reports</span>
+          <span class="proj-arrow">↗</span>
+        </div>
+        <p class="proj-desc">Built detailed readiness reports assessing monitoring coverage, runbook completeness, and on-call preparedness for fintech services.</p>
+        <div class="proj-tags">
+          <span class="tag">Documentation</span><span class="tag">Fintech</span><span class="tag">Operations</span>
+        </div>
+      </div>
+
+      <div class="proj-card">
+        <div class="proj-header">
+          <span class="proj-icon">⚙️</span>
+          <span class="proj-name">Automated Incident Timeline Scribe</span>
+          <span class="proj-arrow">↗</span>
+        </div>
+        <p class="proj-desc">Built a Python tool that automatically generates incident timelines, reducing manual documentation effort during major incidents.</p>
+        <div class="proj-tags">
+          <span class="tag">Python</span><span class="tag">Automation</span><span class="tag">Incident Mgmt</span>
+        </div>
+      </div>
+
+      <div class="proj-card">
+        <div class="proj-header">
+          <span class="proj-icon">📝</span>
+          <span class="proj-name">Operational Process Documentation</span>
+          <span class="proj-arrow">↗</span>
+        </div>
+        <p class="proj-desc">Created standardized operational processes and documentation that improved team efficiency and reduced MTTR across the board.</p>
+        <div class="proj-tags">
+          <span class="tag">Documentation</span><span class="tag">Operations</span><span class="tag">MTTR</span>
+        </div>
+      </div>
+
+    </div>
+  </section>
+
+  <!-- SKILLS -->
+  <section id="skills">
+    <p class="section-label">capabilities</p>
+    <h2 class="section-title">Skills & Tooling</h2>
+    <div class="skills-grid">
+
+      <div class="skill-card">
+        <div class="skill-icon">☁️</div>
+        <div class="skill-cat">Infrastructure</div>
+        <div class="skill-name">Cloud Platforms</div>
+        <div class="skill-tags">
+          <span class="tag">AWS</span>
+          <span class="tag">Azure</span>
+          <span class="tag">GCP</span>
+          <span class="tag">VMware</span>
+          <span class="tag">Hyper-V</span>
+        </div>
+      </div>
+
+      <div class="skill-card">
+        <div class="skill-icon">📡</div>
+        <div class="skill-cat">Observability</div>
+        <div class="skill-name">Monitoring & Alerting</div>
+        <div class="skill-tags">
+          <span class="tag">Dynatrace</span>
+          <span class="tag">Splunk</span>
+          <span class="tag">New Relic</span>
+          <span class="tag">CloudWatch</span>
+          <span class="tag">Datadog</span>
+          <span class="tag">Pingdom</span>
+        </div>
+      </div>
+
+      <div class="skill-card">
+        <div class="skill-icon">⚡</div>
+        <div class="skill-cat">Automation</div>
+        <div class="skill-name">Scripting & Querying</div>
+        <div class="skill-tags">
+          <span class="tag">Python</span>
+          <span class="tag">Bash</span>
+          <span class="tag">SQL</span>
+          <span class="tag">SPL</span>
+          <span class="tag">DQL</span>
+        </div>
+      </div>
+
+      <div class="skill-card">
+        <div class="skill-icon">🔴</div>
+        <div class="skill-cat">Operations</div>
+        <div class="skill-name">Incident Management</div>
+        <div class="skill-tags">
+          <span class="tag">Incident Response</span>
+          <span class="tag">Root Cause Analysis</span>
+          <span class="tag">CAB Reviews</span>
+          <span class="tag">SRE</span>
+        </div>
+      </div>
+
+      <div class="skill-card">
+        <div class="skill-icon">🐧</div>
+        <div class="skill-cat">Systems</div>
+        <div class="skill-name">Operating Systems</div>
+        <div class="skill-tags">
+          <span class="tag">Linux</span>
+          <span class="tag">Windows Server</span>
+        </div>
+      </div>
+
+      <div class="skill-card">
+        <div class="skill-icon">🛠️</div>
+        <div class="skill-cat">Collaboration</div>
+        <div class="skill-name">Dev & Ops Tooling</div>
+        <div class="skill-tags">
+          <span class="tag">Jira</span>
+          <span class="tag">Azure DevOps</span>
+          <span class="tag">Confluence</span>
+          <span class="tag">SharePoint</span>
+        </div>
+      </div>
+
+    </div>
+  </section>
+
+  <!-- CERTIFICATIONS -->
+  <section id="certs" style="padding-top:0">
+    <p class="section-label">credentials</p>
+    <h2 class="section-title">Certifications</h2>
+    <div class="certs-grid">
+
+      <div class="cert-card">
+        <div class="cert-badge aws">☁</div>
+        <div class="cert-name">AWS Cloud Practitioner</div>
+      </div>
+      <div class="cert-card">
+        <div class="cert-badge google">G</div>
+        <div class="cert-name">Google Cloud Platform Fundamentals</div>
+      </div>
+      <div class="cert-card">
+        <div class="cert-badge google">G</div>
+        <div class="cert-name">Google SRE Fundamentals</div>
+      </div>
+      <div class="cert-card">
+        <div class="cert-badge google">G</div>
+        <div class="cert-name">Google Project Management</div>
+      </div>
+
+    </div>
+  </section>
+
+  <!-- EDUCATION -->
+  <section id="education">
+    <p class="section-label">academic background</p>
+    <h2 class="section-title">Education</h2>
+    <div class="edu-grid">
+
+      <div class="edu-card">
+        <div class="edu-year">2017 – 2018</div>
+        <div class="edu-degree">MSc Cloud Computing</div>
+        <div class="edu-school">National College of Ireland</div>
+      </div>
+
+      <div class="edu-card">
+        <div class="edu-year">2011 – 2016</div>
+        <div class="edu-degree">BEng Information Technology</div>
+        <div class="edu-school">University of Pune</div>
+      </div>
+
+    </div>
+  </section>
+
+  <!-- CONTACT -->
+  <div id="contact">
+    <div class="contact-inner">
+      <p class="contact-sub">open to new roles</p>
+      <h2 class="contact-title">Let's Build Something Reliable</h2>
+      <p class="contact-desc">
+        Looking for a Senior SRE or Platform Operations role in Dublin or remote. Let's connect.
+      </p>
+      <div class="contact-links">
+        <a href="/cdn-cgi/l/email-protection#1764767b7a76797f76737e57727a767e7b3974787a" class="contact-link">
+          <span>✉</span> Email
+        </a>
+        <a href="https://linkedin.com" class="contact-link" target="_blank">
+          <span>in</span> LinkedIn
+        </a>
+        <a href="tel:+353894489719" class="contact-link">
+          <span>☎</span> +353 894 489 719
+        </a>
+      </div>
+    </div>
+  </div>
+
+  <footer>
+    <span>© 2026 Salman Hadi &nbsp;·&nbsp; Built with obsession over reliability</span>
+  </footer>
+
+</div>
+
+<script data-cfasync="false" src="/cdn-cgi/scripts/5c5dd728/cloudflare-static/email-decode.min.js"></script><script>
+  // Scroll reveal
+  const reveals = document.querySelectorAll('.tl-item, .skill-card, .cert-card, .edu-card');
+  const observer = new IntersectionObserver((entries) => {
+    entries.forEach((entry, i) => {
+      if (entry.isIntersecting) {
+        setTimeout(() => entry.target.classList.add('visible'), 80);
+        observer.unobserve(entry.target);
+      }
+    });
+  }, { threshold: 0.1 });
+  reveals.forEach(el => observer.observe(el));
+
+  // Stagger skill cards
+  document.querySelectorAll('.skill-card').forEach((el, i) => {
+    el.style.transitionDelay = `${i * 0.08}s
