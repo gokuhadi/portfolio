@@ -254,6 +254,176 @@
   .tl-list li::before { content: '▹'; position: absolute; left: 0; color: var(--cyan); }
 
   /* ─── PROJECTS ─── */
+  .projects-github {
+    font-family: 'JetBrains Mono', monospace; font-size: 0.78rem;
+    color: var(--text-dim); margin-bottom: 2.5rem;
+    display: flex; align-items: center; gap: 0.6rem;
+  }
+  .projects-github a { color: var(--cyan); text-decoration: none; transition: opacity 0.2s; }
+  .projects-github a:hover { opacity: 0.7; }
+  .projects-github::before { content: '⎇'; font-size: 1rem; color: var(--cyan); }
+
+  .projects-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+    gap: 1.4rem;
+  }
+
+  .proj-card {
+    background: var(--navy-glass);
+    border: 1px solid var(--border);
+    border-radius: 12px; padding: 1.6rem;
+    backdrop-filter: blur(12px);
+    display: flex; flex-direction: column; gap: 0.9rem;
+    transition: transform 0.3s, border-color 0.3s, box-shadow 0.3s;
+    position: relative; overflow: hidden;
+  }
+  .proj-card::after {
+    content: ''; position: absolute; bottom: 0; left: 0; right: 0; height: 2px;
+    background: var(--grad); transform: scaleX(0); transform-origin: left;
+    transition: transform 0.3s ease;
+  }
+  .proj-card:hover { transform: translateY(-4px); border-color: rgba(0,229,255,0.3); box-shadow: 0 8px 40px rgba(0,229,255,0.07); }
+  .proj-card:hover::after { transform: scaleX(1); }
+
+  .proj-header { display: flex; align-items: flex-start; justify-content: space-between; gap: 1rem; }
+  .proj-icon { font-size: 1.3rem; flex-shrink: 0; margin-top: 2px; }
+  .proj-arrow {
+    font-size: 0.9rem; color: var(--text-dim);
+    transition: color 0.2s, transform 0.2s; flex-shrink: 0;
+  }
+  .proj-card:hover .proj-arrow { color: var(--cyan); transform: translate(2px, -2px); }
+
+  .proj-name {
+    font-family: 'Manrope', sans-serif; font-weight: 700; font-size: 0.95rem;
+    color: #e8f0fb; line-height: 1.35; flex: 1;
+  }
+  .proj-desc { font-size: 0.83rem; color: var(--text-dim); line-height: 1.65; }
+  .proj-tags { display: flex; flex-wrap: wrap; gap: 0.4rem; margin-top: auto; padding-top: 0.4rem; }
+
+  /* ─── SKILLS ─── */
+  .skills-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 1.5rem; }
+
+  .skill-card {
+    background: var(--navy-glass);
+    border: 1px solid var(--border);
+    border-radius: 12px; padding: 1.8rem;
+    backdrop-filter: blur(12px);
+    transition: transform 0.3s, border-color 0.3s, box-shadow 0.3s;
+  }
+  .skill-card:hover { border-color: rgba(0,229,255,0.35); box-shadow: 0 0 30px rgba(0,229,255,0.08); transform: translateY(-3px); }
+
+  .skill-icon { font-size: 1.6rem; margin-bottom: 1rem; }
+  .skill-cat {
+    font-family: 'JetBrains Mono', monospace; font-size: 0.65rem;
+    color: var(--cyan); letter-spacing: 0.18em; text-transform: uppercase; margin-bottom: 0.6rem;
+  }
+  .skill-name {
+    font-family: 'Manrope', sans-serif; font-weight: 600; font-size: 1rem;
+    color: #e8f0fb; margin-bottom: 1rem;
+  }
+  .skill-tags { display: flex; flex-wrap: wrap; gap: 0.4rem; }
+  .tag {
+    font-family: 'JetBrains Mono', monospace; font-size: 0.65rem;
+    padding: 0.3rem 0.7rem; border-radius: 4px;
+    border: 1px solid var(--border); color: var(--text-dim); letter-spacing: 0.05em;
+    transition: border-color 0.2s, color 0.2s;
+  }
+  .tag:hover { border-color: var(--cyan); color: var(--cyan); }
+
+  /* ─── CERTS ─── */
+  .certs-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(220px, 1fr)); gap: 1.2rem; }
+
+  .cert-card {
+    background: var(--navy-glass); border: 1px solid var(--border);
+    border-radius: 10px; padding: 1.5rem;
+    backdrop-filter: blur(12px);
+    display: flex; gap: 1rem; align-items: flex-start;
+    transition: transform 0.3s, border-color 0.3s;
+  }
+  .cert-card:hover { transform: translateY(-4px); border-color: rgba(168,85,247,0.4); }
+
+  .cert-badge {
+    width: 36px; height: 36px; border-radius: 8px;
+    display: grid; place-items: center; font-size: 1rem; flex-shrink: 0;
+  }
+  .cert-badge.aws { background: rgba(255,153,0,0.15); color: #ff9900; border: 1px solid rgba(255,153,0,0.3); }
+  .cert-badge.google { background: rgba(0,229,255,0.1); color: var(--cyan); border: 1px solid var(--border); }
+
+  .cert-name {
+    font-family: 'Manrope', sans-serif; font-size: 0.85rem; font-weight: 600;
+    color: #e8f0fb; line-height: 1.4;
+  }
+
+  /* ─── EDUCATION ─── */
+  .edu-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 1.5rem; }
+
+  .edu-card {
+    background: var(--navy-glass); border: 1px solid var(--border);
+    border-radius: 12px; padding: 2rem; backdrop-filter: blur(12px);
+    position: relative; overflow: hidden;
+    transition: border-color 0.3s;
+  }
+  .edu-card:hover { border-color: rgba(168,85,247,0.4); }
+  .edu-card::before {
+    content: ''; position: absolute; top: 0; left: 0; right: 0; height: 2px;
+    background: var(--grad);
+  }
+  .edu-year {
+    font-family: 'JetBrains Mono', monospace; font-size: 0.7rem;
+    color: var(--purple); letter-spacing: 0.12em; margin-bottom: 0.8rem;
+  }
+  .edu-degree {
+    font-family: 'Manrope', sans-serif; font-weight: 700; font-size: 1.1rem;
+    color: #e8f0fb; margin-bottom: 0.4rem;
+  }
+  .edu-school { font-size: 0.85rem; color: var(--text-dim); }
+
+  /* ─── CONTACT / FOOTER ─── */
+  #contact {
+    padding: 6rem 4rem;
+    max-width: 1200px; margin: 0 auto;
+    text-align: center;
+  }
+
+  .contact-inner {
+    background: var(--navy-glass); border: 1px solid var(--border);
+    border-radius: 20px; padding: 4rem; backdrop-filter: blur(16px);
+    position: relative; overflow: hidden;
+  }
+  .contact-inner::before {
+    content: ''; position: absolute; inset: 0;
+    background: radial-gradient(ellipse at 50% 0%, rgba(0,229,255,0.06) 0%, transparent 70%);
+  }
+
+  .contact-sub {
+    font-family: 'JetBrains Mono', monospace; font-size: 0.75rem;
+    color: var(--cyan); letter-spacing: 0.2em; text-transform: uppercase; margin-bottom: 1rem;
+  }
+  .contact-title {
+    font-family: 'Manrope', sans-serif; font-weight: 800;
+    font-size: clamp(1.8rem, 4vw, 3rem);
+    color: #e8f0fb; margin-bottom: 1.2rem;
+  }
+  .contact-desc { color: var(--text-dim); max-width: 500px; margin: 0 auto 2.5rem; line-height: 1.8; }
+
+  .contact-links { display: flex; justify-content: center; gap: 1.2rem; flex-wrap: wrap; }
+  .contact-link {
+    font-family: 'JetBrains Mono', monospace; font-size: 0.75rem;
+    letter-spacing: 0.1em; text-transform: uppercase; text-decoration: none;
+    padding: 0.85rem 1.8rem; border: 1px solid var(--border); border-radius: 6px;
+    color: var(--text); display: flex; align-items: center; gap: 0.6rem;
+    transition: border-color 0.3s, color 0.3s, background 0.3s;
+  }
+  .contact-link:hover { border-color: var(--cyan); color: var(--cyan); background: var(--cyan-dim); }
+
+  footer {
+    text-align: center; padding: 2rem 4rem;
+    font-family: 'JetBrains Mono', monospace; font-size: 0.65rem;
+    color: var(--text-dim); letter-spacing: 0.1em; border-top: 1px solid var(--border);
+  }
+
+  /* ─── PROJECTS ─── */
   .proj-github {
     margin-bottom: 2.5rem;
   }
@@ -509,6 +679,138 @@
         </div>
         <p class="proj-desc">Created standardized operational processes and documentation that improved team efficiency and reduced MTTR across the board.</p>
         <div class="skill-tags"><span class="tag">Documentation</span><span class="tag">SRE</span><span class="tag">Operations</span></div>
+      </div>
+
+    </div>
+  </section>
+
+  <!-- PROJECTS -->
+  <section id="projects">
+    <p class="section-label">things i've built</p>
+    <h2 class="section-title">Projects</h2>
+    <div class="projects-github">
+      <a href="https://github.com/gokuhadi" target="_blank">github.com/gokuhadi</a>
+    </div>
+    <div class="projects-grid">
+
+      <div class="proj-card">
+        <div class="proj-header">
+          <span class="proj-icon">☁️</span>
+          <span class="proj-name">AWS Server Deployment</span>
+          <span class="proj-arrow">↗</span>
+        </div>
+        <p class="proj-desc">Provisioned and configured production-grade EC2 instances with networking, security groups, and monitoring.</p>
+        <div class="proj-tags">
+          <span class="tag">AWS</span><span class="tag">EC2</span><span class="tag">Infrastructure</span>
+        </div>
+      </div>
+
+      <div class="proj-card">
+        <div class="proj-header">
+          <span class="proj-icon">🪟</span>
+          <span class="proj-name">Windows Server Deployment via VMware</span>
+          <span class="proj-arrow">↗</span>
+        </div>
+        <p class="proj-desc">Deployed and configured Windows Server environments using VMware Workstation for development and testing.</p>
+        <div class="proj-tags">
+          <span class="tag">VMware</span><span class="tag">Windows Server</span><span class="tag">Virtualization</span>
+        </div>
+      </div>
+
+      <div class="proj-card">
+        <div class="proj-header">
+          <span class="proj-icon">🐧</span>
+          <span class="proj-name">Linux Server Deployment</span>
+          <span class="proj-arrow">↗</span>
+        </div>
+        <p class="proj-desc">Built and hardened Linux servers for various workloads including web hosting and application services.</p>
+        <div class="proj-tags">
+          <span class="tag">Linux</span><span class="tag">Bash</span><span class="tag">Infra</span>
+        </div>
+      </div>
+
+      <div class="proj-card">
+        <div class="proj-header">
+          <span class="proj-icon">🏛️</span>
+          <span class="proj-name">Risk Analysis System — Revenue.ie</span>
+          <span class="proj-arrow">↗</span>
+        </div>
+        <p class="proj-desc">Maintained and supported a critical risk analysis system for Ireland's Revenue Commissioners customs operations.</p>
+        <div class="proj-tags">
+          <span class="tag">Public Sector</span><span class="tag">Java</span><span class="tag">COBOL</span>
+        </div>
+      </div>
+
+      <div class="proj-card">
+        <div class="proj-header">
+          <span class="proj-icon">🚌</span>
+          <span class="proj-name">Transit System Enhancement — Revenue.ie</span>
+          <span class="proj-arrow">↗</span>
+        </div>
+        <p class="proj-desc">Enhanced application components for the transit system at Revenue.ie, improving reliability and performance.</p>
+        <div class="proj-tags">
+          <span class="tag">Public Sector</span><span class="tag">Java</span><span class="tag">Enhancement</span>
+        </div>
+      </div>
+
+      <div class="proj-card">
+        <div class="proj-header">
+          <span class="proj-icon">🔐</span>
+          <span class="proj-name">IIS Certificate Implementation — ESB</span>
+          <span class="proj-arrow">↗</span>
+        </div>
+        <p class="proj-desc">Implemented SSL/TLS certificates for sites on IIS application pools for ESB, ensuring secure communications.</p>
+        <div class="proj-tags">
+          <span class="tag">IIS</span><span class="tag">Security</span><span class="tag">Certificates</span>
+        </div>
+      </div>
+
+      <div class="proj-card">
+        <div class="proj-header">
+          <span class="proj-icon">📊</span>
+          <span class="proj-name">Fintech Monitoring Dashboards & Alerts</span>
+          <span class="proj-arrow">↗</span>
+        </div>
+        <p class="proj-desc">Created comprehensive dashboards, alerting rules, and response procedures across multiple fintech payment services.</p>
+        <div class="proj-tags">
+          <span class="tag">Dynatrace</span><span class="tag">Splunk</span><span class="tag">New Relic</span>
+        </div>
+      </div>
+
+      <div class="proj-card">
+        <div class="proj-header">
+          <span class="proj-icon">📋</span>
+          <span class="proj-name">Production Support Readiness Reports</span>
+          <span class="proj-arrow">↗</span>
+        </div>
+        <p class="proj-desc">Built detailed readiness reports assessing monitoring coverage, runbook completeness, and on-call preparedness for fintech services.</p>
+        <div class="proj-tags">
+          <span class="tag">Documentation</span><span class="tag">Fintech</span><span class="tag">Operations</span>
+        </div>
+      </div>
+
+      <div class="proj-card">
+        <div class="proj-header">
+          <span class="proj-icon">⚙️</span>
+          <span class="proj-name">Automated Incident Timeline Scribe</span>
+          <span class="proj-arrow">↗</span>
+        </div>
+        <p class="proj-desc">Built a Python tool that automatically generates incident timelines, reducing manual documentation effort during major incidents.</p>
+        <div class="proj-tags">
+          <span class="tag">Python</span><span class="tag">Automation</span><span class="tag">Incident Mgmt</span>
+        </div>
+      </div>
+
+      <div class="proj-card">
+        <div class="proj-header">
+          <span class="proj-icon">📝</span>
+          <span class="proj-name">Operational Process Documentation</span>
+          <span class="proj-arrow">↗</span>
+        </div>
+        <p class="proj-desc">Created standardized operational processes and documentation that improved team efficiency and reduced MTTR across the board.</p>
+        <div class="proj-tags">
+          <span class="tag">Documentation</span><span class="tag">Operations</span><span class="tag">MTTR</span>
+        </div>
       </div>
 
     </div>
